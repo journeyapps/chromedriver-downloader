@@ -77,8 +77,15 @@ export async function getChromeDriverDetails(options: Options = {}) {
  */
 export async function getChromeDetails(options: Pick<Options, 'chromeBinary'> = {}) {
   const path = await getChromePath(options);
-  const versionString = spawn.sync(path, ['--version']).stdout.toString();
-  const versionMatch = versionString.match(/\s(\d+\.\d+\.\d+)\.\d+/);
+  let versionString: string;
+  if (process.platform == 'win32') {
+    const vi = require('win-version-info');
+    const info = vi(path);
+    versionString = info.FileVersion;
+  } else {
+    versionString = spawn.sync(path, ['--version']).stdout.toString();
+  }
+  const versionMatch = versionString.match(/(\d+\.\d+\.\d+)\.\d+/);
   if (versionMatch == null) {
     throw new Error(`Unable to parse version from ${JSON.stringify(versionString)}`);
   }

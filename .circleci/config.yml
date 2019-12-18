@@ -25,6 +25,7 @@ jobs:
       shell: bash.exe
     steps:
       - checkout
+      - run: choco install googlechrome
       - run: yarn install --frozen-lockfile
       - run: yarn run test
 

@@ -22,7 +22,8 @@
     "cross-spawn": "^7.0.1",
     "find-cache-dir": "^3.2.0",
     "node-fetch": "^2.6.0",
-    "unzipper": "^0.10.5"
+    "unzipper": "^0.10.5",
+    "win-version-info": "^3.0.1"
   },
   "devDependencies": {
     "@types/cross-spawn": "^6.0.1",
