@@ -20,7 +20,7 @@ Use:
 
     const { downloadChromeDriver } = require('@journeyapps/chromedriver-downloader');
 
-    downloadChromeDriver().then(path => console.log(path));
+    downloadChromeDriver().then(details => console.log(details));
 
 For more options, look at the TypeScript definitions or source code.
 
@@ -38,8 +38,8 @@ exports.config = {
     browserName: 'chrome'
   },
   async beforeLaunch() {
-    const path = await downloadChromeDriver();
-    exports.config.chromeDriver = path;
+    const { chromeDriverPath } = await downloadChromeDriver();
+    exports.config.chromeDriver = chromeDriverPath;
   }
 }
 ```
