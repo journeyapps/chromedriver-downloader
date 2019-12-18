@@ -1,0 +1,43 @@
+{
+  "name": "@journeyapps/chromedriver-downloader",
+  "version": "0.1.0",
+  "description": "Tool to download the correct ChromeDriver version",
+  "main": "dist/index.js",
+  "repository": "https://github.com/@journeyapps/chromedriver-downloader",
+  "license": "MIT",
+  "keywords": [
+    "chromedriver"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "format": "prettier \"src/**/*.ts\" \"test/**/*.ts\" --write",
+    "test": "ts-node ./node_modules/jasmine/bin/jasmine test/*.ts",
+    "version": "standard-version"
+  },
+  "engines": {
+    "node": ">=10"
+  },
+  "dependencies": {
+    "chrome-launcher": "^0.12.0",
+    "cross-spawn": "^7.0.1",
+    "find-cache-dir": "^3.2.0",
+    "node-fetch": "^2.6.0",
+    "unzipper": "^0.10.5"
+  },
+  "devDependencies": {
+    "@types/cross-spawn": "^6.0.1",
+    "@types/find-cache-dir": "^2.0.0",
+    "@types/jasmine": "^3.5.0",
+    "@types/node": "^12.12.20",
+    "@types/node-fetch": "^2.5.4",
+    "@types/unzipper": "^0.10.1",
+    "jasmine": "^3.5.0",
+    "prettier": "^1.18.2",
+    "standard-version": "^6.0.1",
+    "ts-node": "^8.5.4",
+    "typescript": "^3.7.3"
+  },
+  "files": [
+    "dist"
+  ]
+}
