@@ -24,6 +24,7 @@ jobs:
   mac:
     macos:
       xcode: "26.1.0"
+      resource_class: m4pro.medium
     steps:
       - checkout
       - browser-tools/install-chrome
