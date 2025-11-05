@@ -1,12 +1,11 @@
 import * as spawn from 'cross-spawn';
 import * as fs from 'fs';
-import fetch from 'node-fetch';
 import * as path from 'path';
 import { pipeline } from 'stream';
 import { promisify } from 'util';
 import * as chromeFinder from 'chrome-launcher/dist/chrome-finder';
 import * as unzipper from 'unzipper';
-import findCacheDir = require('find-cache-dir');
+import findCacheDirectory from 'find-cache-dir';
 
 type SupportedPlatforms = 'darwin' | 'linux' | 'win32';
 
@@ -97,7 +96,7 @@ export async function getChromeDetails(options: Pick<Options, 'chromeBinary'> = 
 
 async function getChromeDriver(chromeDriverVersion: string): Promise<string> {
   const cacheName = require('../package.json').name;
-  const cachePath = findCacheDir({ name: cacheName, create: true });
+  const cachePath = findCacheDirectory({ name: cacheName, create: true });
   if (cachePath == null) {
     throw new Error('Could not find a cache path');
   }
@@ -132,6 +131,11 @@ async function downloadAndUnzip(url: string, dest: string) {
   if (!response.ok) {
     throw new Error(response.statusText);
   }
+
+  if(!response.body){
+    throw new Error('Response has no body');
+  }
+
   const stream = unzipper.Extract({ path: dest });
   await streamPipeline(response.body, stream);
 }
