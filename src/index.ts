@@ -1,10 +1,10 @@
 import * as spawn from 'cross-spawn';
 import * as fs from 'fs';
+import * as unzipper from 'unzipper';
 import * as path from 'path';
 import { pipeline } from 'stream';
 import { promisify } from 'util';
 import * as chromeFinder from 'chrome-launcher/dist/chrome-finder';
-import * as unzipper from 'unzipper';
 import findCacheDirectory from 'find-cache-dir';
 
 type SupportedPlatforms = 'darwin' | 'linux' | 'win32';
@@ -168,8 +168,37 @@ async function downloadAndUnzip(url: string, dest: string) {
   }
 
   console.log(`Extracting to ${dest}...`);
-  const stream = unzipper.Extract({ path: dest });
-  await streamPipeline(response.body, stream);
+
+  await new Promise((resolve, reject) => {
+    fs.mkdir(dest, { recursive: true }, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(null);
+      }
+    });
+  });
+
+  const filePath = path.join(dest, 'chromedriver.zip');
+  const writeStream = fs.createWriteStream(filePath);
+  await streamPipeline(response.body, writeStream);
+  console.log(`File downloaded ${filePath}`);
+
+  const directory = await unzipper.Open.file(filePath);
+  await directory.extract({ path: dest });
+
+  console.log(`File downloaded and extracted to ${dest}`);
+
+  new Promise((resolve) => {
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        console.warn(`Could not delete temp file ${filePath}:`, err);
+      } else {
+        console.log(`Deleted ${filePath}`);
+      }
+      resolve(resolve);
+    });
+  });
 }
 
 function getDriverPlatformDir() {
