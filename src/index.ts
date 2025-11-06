@@ -36,11 +36,8 @@ export interface Options {
  * @param options Use specific versions instead of auto-detecting.
  */
 export async function downloadChromeDriver(options: Options = {}) {
-  console.log('Downloading ChromeDriver...');
   const chromeDriverDetails = await getChromeDriverDetails(options);
-  console.log('chromeDriverDetails', chromeDriverDetails);
   const chromeDriverPath = await getChromeDriver(chromeDriverDetails.chromeDriverVersion);
-  console.log('chromeDriverPath', chromeDriverPath);
 
   return {
     chromeDriverPath,
@@ -74,10 +71,8 @@ export async function getChromeDriverDetails(
   }
 
   const url = `https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_${chromeDetails.chromeVersion}`;
-  console.log('URL:', url);
 
   const chromeDriverVersion = await fetchText(url);
-  console.log('chromeDriverVersion', chromeDriverVersion);
 
   return {
     chromeDriverVersion,
@@ -103,8 +98,6 @@ export async function getChromeDetails(options: Pick<Options, 'chromeBinary'> = 
     throw new Error(`Unable to parse version from ${JSON.stringify(versionString)}`);
   }
 
-  console.log('Version:', versionString);
-
   return {
     chromeVersion: versionMatch[1],
     chromeBinary: path,
@@ -121,23 +114,14 @@ async function getChromeDriver(chromeDriverVersion: string): Promise<string> {
 
   const driverPlatform = getDriverPlatform();
 
-  console.log(`getChromeDriver: Using cache path: ${cachePath}`);
-  console.log(
-    `getChromeDriver: Downloading chromedriver version ${chromeDriverVersion} for platform ${driverPlatform}`,
-  );
-
   const dest: string = path.join(cachePath, `chromedriver_${chromeDriverVersion}`);
   let driverPath: string = path.join(dest, driverPlatform, 'chromedriver');
-
-  console.log('getChromeDriver: Checking for existing chromedriver at:', driverPath);
 
   if (process.platform == 'win32') {
     driverPath += '.exe';
   }
 
   if (fs.existsSync(driverPath)) {
-    console.log('getChromeDriver: Driver found in cache, skipping download.');
-
     return driverPath;
   }
 
@@ -156,8 +140,6 @@ async function fetchText(url: string) {
 }
 
 async function downloadAndUnzip(url: string, dest: string) {
-  console.log(`downloadAndUnzip: Downloading from ${url} to ${dest}`);
-
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(response.statusText);
@@ -166,8 +148,6 @@ async function downloadAndUnzip(url: string, dest: string) {
   if (!response.body) {
     throw new Error('Response has no body');
   }
-
-  console.log(`Extracting to ${dest}...`);
 
   await new Promise((resolve, reject) => {
     fs.mkdir(dest, { recursive: true }, (err) => {
@@ -182,19 +162,14 @@ async function downloadAndUnzip(url: string, dest: string) {
   const filePath = path.join(dest, 'chromedriver.zip');
   const writeStream = fs.createWriteStream(filePath);
   await streamPipeline(response.body, writeStream);
-  console.log(`File downloaded ${filePath}`);
 
   const directory = await unzipper.Open.file(filePath);
   await directory.extract({ path: dest });
-
-  console.log(`File downloaded and extracted to ${dest}`);
 
   new Promise((resolve) => {
     fs.unlink(filePath, (err) => {
       if (err) {
         console.warn(`Could not delete temp file ${filePath}:`, err);
-      } else {
-        console.log(`Deleted ${filePath}`);
       }
       resolve(resolve);
     });
@@ -242,11 +217,6 @@ export async function getChromePath(options: Pick<Options, 'chromeBinary'> = {})
 
   if (paths.length == 0) {
     throw new Error('No chrome installation found');
-  }
-
-  console.log('getChromePath: Found chrome installations at:');
-  for (const p of paths) {
-    console.log(` - ${p}`);
   }
 
   return paths[0];
