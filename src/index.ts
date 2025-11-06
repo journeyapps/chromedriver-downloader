@@ -134,9 +134,11 @@ async function getChromeDriver(chromeDriverVersion: string): Promise<string> {
 
 async function fetchText(url: string) {
   const response = await fetch(url);
+
   if (!response.ok) {
     throw new Error(response.statusText);
   }
+
   return await response.text();
 }
 
