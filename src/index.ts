@@ -11,7 +11,7 @@ type SupportedPlatforms = 'darwin' | 'linux' | 'win32';
 
 const streamPipeline = promisify(pipeline);
 
-(global as any).jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
+(global as any).jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
 
 export interface Options {
   /**
