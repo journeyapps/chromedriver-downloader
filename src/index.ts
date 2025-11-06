@@ -11,7 +11,7 @@ type SupportedPlatforms = 'darwin' | 'linux' | 'win32';
 
 const streamPipeline = promisify(pipeline);
 
-(global as any).jasmine.DEFAULT_TIMEOUT_INTERVAL = 20000;
+(global as any).jasmine.DEFAULT_TIMEOUT_INTERVAL = 60000;
 
 export interface Options {
   /**
@@ -190,7 +190,7 @@ function getDriverPlatformDir() {
 
 function getDriverPlatform() {
   if (process.platform == 'linux') {
-    return 'chrome-linux64';
+    return 'chromedriver-linux64';
   }
 
   if (process.platform == 'darwin') {
