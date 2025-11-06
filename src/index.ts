@@ -41,7 +41,7 @@ export async function downloadChromeDriver(options: Options = {}) {
 
   return {
     chromeDriverPath,
-    ...chromeDriverDetails,
+    ...chromeDriverDetails
   };
 }
 
@@ -49,11 +49,11 @@ export async function downloadChromeDriver(options: Options = {}) {
  * Detect the version of ChromeDriver to use.
  */
 export async function getChromeDriverDetails(
-  options: Options = {},
+  options: Options = {}
 ): Promise<{ chromeDriverVersion: string; chromeVersion?: string; chromeBinary?: string }> {
   if (options.chromeDriverVersion) {
     return {
-      chromeDriverVersion: options.chromeDriverVersion,
+      chromeDriverVersion: options.chromeDriverVersion
     };
   }
 
@@ -64,7 +64,7 @@ export async function getChromeDriverDetails(
 
   if (options.chromeVersion) {
     chromeDetails = {
-      chromeVersion: options.chromeVersion,
+      chromeVersion: options.chromeVersion
     };
   } else {
     chromeDetails = await getChromeDetails(options);
@@ -76,7 +76,7 @@ export async function getChromeDriverDetails(
 
   return {
     chromeDriverVersion,
-    ...chromeDetails,
+    ...chromeDetails
   };
 }
 
@@ -93,6 +93,7 @@ export async function getChromeDetails(options: Pick<Options, 'chromeBinary'> = 
   } else {
     versionString = spawn.sync(path, ['--version']).stdout.toString();
   }
+
   const versionMatch = versionString.match(/(\d+\.\d+\.\d+)\.\d+/);
   if (versionMatch == null) {
     throw new Error(`Unable to parse version from ${JSON.stringify(versionString)}`);
@@ -100,7 +101,7 @@ export async function getChromeDetails(options: Pick<Options, 'chromeBinary'> = 
 
   return {
     chromeVersion: versionMatch[1],
-    chromeBinary: path,
+    chromeBinary: path
   };
 }
 
