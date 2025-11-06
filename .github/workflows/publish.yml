@@ -8,6 +8,10 @@ on:
     tags-ignore:
       - "**"
 
+env:
+  SECRETS: ${{ toJSON(secrets) }}
+  GITHUB_TOKEN: ${{ secrets.SHARED_GH_TOKEN }}
+
 jobs:
   build:
     name: Publish Packages
