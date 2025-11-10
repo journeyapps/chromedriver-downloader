@@ -1,5 +1,7 @@
 import { getChromePath, getChromeDetails, downloadChromeDriver, getChromeDriverDetails } from '../src/index';
 
+(global as any).jasmine.DEFAULT_TIMEOUT_INTERVAL = 120000;
+
 describe('chromedriver-downloader', () => {
   it('should get the path to chrome', async () => {
     // Some examples:
