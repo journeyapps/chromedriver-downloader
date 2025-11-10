@@ -4,7 +4,7 @@ import * as unzipper from 'unzipper';
 import * as path from 'path';
 import { pipeline } from 'stream';
 import { promisify } from 'util';
-import * as chromeFinder from 'chrome-launcher/dist/chrome-finder';
+import { Launcher } from 'chrome-launcher';
 import findCacheDirectory from 'find-cache-dir';
 
 type SupportedPlatforms = 'darwin' | 'linux' | 'win32';
@@ -220,7 +220,7 @@ export async function getChromePath(options: Pick<Options, 'chromeBinary'> = {})
     return options.chromeBinary;
   }
 
-  const paths: string[] = chromeFinder[process.platform as SupportedPlatforms]();
+  const paths: string[] = Launcher.getInstallations();
 
   if (paths.length == 0) {
     throw new Error('No chrome installation found');
