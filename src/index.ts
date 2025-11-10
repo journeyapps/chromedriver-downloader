@@ -72,7 +72,13 @@ export async function getChromeDriverDetails(
 
   const url = `https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_${chromeDetails.chromeVersion}`;
 
-  const chromeDriverVersion = await fetchText(url);
+  let chromeDriverVersion: string;
+  try {
+    chromeDriverVersion = await fetchText(url);
+  } catch (e) {
+    console.error(`Failed to fetch ChromeDriver version ${chromeDetails.chromeVersion}`);
+    throw e;
+  }
 
   return {
     chromeDriverVersion,
