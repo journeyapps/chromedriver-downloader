@@ -1,12 +1,11 @@
 import * as spawn from 'cross-spawn';
 import * as fs from 'fs';
-import fetch from 'node-fetch';
+import * as unzipper from 'unzipper';
 import * as path from 'path';
 import { pipeline } from 'stream';
 import { promisify } from 'util';
-import * as chromeFinder from 'chrome-launcher/dist/chrome-finder';
-import * as unzipper from 'unzipper';
-import findCacheDir = require('find-cache-dir');
+import { Launcher } from 'chrome-launcher';
+import findCacheDirectory from 'find-cache-dir';
 
 type SupportedPlatforms = 'darwin' | 'linux' | 'win32';
 
@@ -37,6 +36,7 @@ export interface Options {
 export async function downloadChromeDriver(options: Options = {}) {
   const chromeDriverDetails = await getChromeDriverDetails(options);
   const chromeDriverPath = await getChromeDriver(chromeDriverDetails.chromeDriverVersion);
+
   return {
     chromeDriverPath,
     ...chromeDriverDetails
@@ -46,16 +46,20 @@ export async function downloadChromeDriver(options: Options = {}) {
 /**
  * Detect the version of ChromeDriver to use.
  */
-export async function getChromeDriverDetails(options: Options = {}) {
+export async function getChromeDriverDetails(
+  options: Options = {}
+): Promise<{ chromeDriverVersion: string; chromeVersion?: string; chromeBinary?: string }> {
   if (options.chromeDriverVersion) {
     return {
       chromeDriverVersion: options.chromeDriverVersion
     };
   }
+
   let chromeDetails: {
     chromeVersion: string;
     chromeBinary?: string;
   };
+
   if (options.chromeVersion) {
     chromeDetails = {
       chromeVersion: options.chromeVersion
@@ -63,9 +67,17 @@ export async function getChromeDriverDetails(options: Options = {}) {
   } else {
     chromeDetails = await getChromeDetails(options);
   }
-  const chromeDriverVersion = await fetchText(
-    `https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${chromeDetails.chromeVersion}`
-  );
+
+  const url = `https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_${chromeDetails.chromeVersion}`;
+
+  let chromeDriverVersion: string;
+  try {
+    chromeDriverVersion = await fetchText(url);
+  } catch (e) {
+    console.error(`Failed to fetch ChromeDriver version ${chromeDetails.chromeVersion}`);
+    throw e;
+  }
+
   return {
     chromeDriverVersion,
     ...chromeDetails
@@ -85,10 +97,12 @@ export async function getChromeDetails(options: Pick<Options, 'chromeBinary'> = 
   } else {
     versionString = spawn.sync(path, ['--version']).stdout.toString();
   }
+
   const versionMatch = versionString.match(/(\d+\.\d+\.\d+)\.\d+/);
   if (versionMatch == null) {
     throw new Error(`Unable to parse version from ${JSON.stringify(versionString)}`);
   }
+
   return {
     chromeVersion: versionMatch[1],
     chromeBinary: path
@@ -97,14 +111,17 @@ export async function getChromeDetails(options: Pick<Options, 'chromeBinary'> = 
 
 async function getChromeDriver(chromeDriverVersion: string): Promise<string> {
   const cacheName = require('../package.json').name;
-  const cachePath = findCacheDir({ name: cacheName, create: true });
+  const cachePath = findCacheDirectory({ name: cacheName, create: true });
+
   if (cachePath == null) {
     throw new Error('Could not find a cache path');
   }
+
   const driverPlatform = getDriverPlatform();
 
-  const dest = path.join(cachePath, `chromedriver_${chromeDriverVersion}_${driverPlatform}`);
-  let driverPath = path.join(dest, 'chromedriver');
+  const dest: string = path.join(cachePath, `chromedriver_${chromeDriverVersion}`);
+  let driverPath: string = path.join(dest, driverPlatform, 'chromedriver');
+
   if (process.platform == 'win32') {
     driverPath += '.exe';
   }
@@ -113,7 +130,7 @@ async function getChromeDriver(chromeDriverVersion: string): Promise<string> {
     return driverPath;
   }
 
-  const url = `https://chromedriver.storage.googleapis.com/${chromeDriverVersion}/chromedriver_${driverPlatform}.zip`;
+  const url = `https://storage.googleapis.com/chrome-for-testing-public/${chromeDriverVersion}/${getDriverPlatformDir()}/${driverPlatform}.zip`;
   await downloadAndUnzip(url, dest);
   fs.chmodSync(driverPath, '770');
   return driverPath;
@@ -121,9 +138,11 @@ async function getChromeDriver(chromeDriverVersion: string): Promise<string> {
 
 async function fetchText(url: string) {
   const response = await fetch(url);
+
   if (!response.ok) {
     throw new Error(response.statusText);
   }
+
   return await response.text();
 }
 
@@ -132,30 +151,80 @@ async function downloadAndUnzip(url: string, dest: string) {
   if (!response.ok) {
     throw new Error(response.statusText);
   }
-  const stream = unzipper.Extract({ path: dest });
-  await streamPipeline(response.body, stream);
+
+  if (!response.body) {
+    throw new Error('Response has no body');
+  }
+
+  await new Promise((resolve, reject) => {
+    fs.mkdir(dest, { recursive: true }, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(null);
+      }
+    });
+  });
+
+  const filePath = path.join(dest, 'chromedriver.zip');
+  const writeStream = fs.createWriteStream(filePath);
+  await streamPipeline(response.body, writeStream);
+
+  const directory = await unzipper.Open.file(filePath);
+  await directory.extract({ path: dest });
+
+  new Promise((resolve) => {
+    fs.unlink(filePath, (err) => {
+      if (err) {
+        console.warn(`Could not delete temp file ${filePath}:`, err);
+      }
+      resolve(resolve);
+    });
+  });
+}
+
+function getDriverPlatformDir() {
+  if (process.platform == 'linux') {
+    return 'linux64';
+  }
+
+  if (process.platform == 'darwin') {
+    return 'mac-x64';
+  }
+
+  if (process.platform == 'win32') {
+    return 'win32';
+  }
+
+  throw new Error(`Unsupported platform: ${process.platform}`);
 }
 
 function getDriverPlatform() {
   if (process.platform == 'linux') {
-    return 'linux64';
-  } else if (process.platform == 'darwin') {
-    return 'mac64';
-  } else if (process.platform == 'win32') {
-    return 'win32';
-  } else {
-    throw new Error(`Unsupported platform: ${process.platform}`);
+    return 'chromedriver-linux64';
   }
+
+  if (process.platform == 'darwin') {
+    return 'chromedriver-mac-x64';
+  }
+
+  if (process.platform == 'win32') {
+    return 'chromedriver-win32';
+  }
+
+  throw new Error(`Unsupported platform: ${process.platform}`);
 }
 
 export async function getChromePath(options: Pick<Options, 'chromeBinary'> = {}): Promise<string> {
   if (options.chromeBinary) {
     return options.chromeBinary;
-  } else {
-    const paths: string[] = chromeFinder[process.platform as SupportedPlatforms]();
-    if (paths.length == 0) {
-      throw new Error('No chrome installation found');
-    }
-    return paths[0];
   }
+
+  const paths: string[] = Launcher.getInstallations();
+
+  if (paths.length == 0) {
+    throw new Error('No chrome installation found');
+  }
+
+  return paths[0];
 }

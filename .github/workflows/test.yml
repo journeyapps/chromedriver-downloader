@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo apt-get install -y ./google-chrome-stable_current_amd64.deb
+      - name: Install pnpm
+        run: npm install -g pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run tests
+        run: pnpm run test
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install pnpm
+        run: npm install -g pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run tests
+        run: pnpm run test
+
+  macos:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Chrome
+        run: |
+          brew install --cask google-chrome
+      - name: Install pnpm
+        run: npm install -g pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run tests
+        run: pnpm run test
+

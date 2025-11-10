@@ -10,11 +10,11 @@ This helps avoid the overhead of manually installing the correct ChromeDriver ve
 
 ## Usage
 
-Node 10.x or later is required.
+Node 22.x or later is required.
 
 Install:
 
-    yarn add --dev @journeyapps/chromedriver-downloader
+    pnpm add --dev @journeyapps/chromedriver-downloader
 
 Use:
 

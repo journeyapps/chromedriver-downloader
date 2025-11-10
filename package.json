@@ -9,34 +9,35 @@
     "chromedriver"
   ],
   "scripts": {
+    "ci:publish": "changeset publish && git push --follow-tags",
+    "ci:version": "changeset version && pnpm install --no-frozen-lockfile",
     "build": "tsc -p tsconfig.json",
     "format": "prettier \"src/**/*.ts\" \"test/**/*.ts\" --write",
     "test": "ts-node ./node_modules/jasmine/bin/jasmine test/*.ts",
-    "prepare": "yarn run build"
+    "prepare": "pnpm run build"
   },
   "engines": {
     "node": ">=10"
   },
   "dependencies": {
-    "chrome-launcher": "^0.12.0",
-    "cross-spawn": "^7.0.1",
-    "find-cache-dir": "^3.2.0",
-    "node-fetch": "^2.6.0",
-    "unzipper": "^0.10.5",
-    "win-version-info": "^3.0.1"
+    "chrome-launcher": "1.2.1",
+    "cross-spawn": "7.0.6",
+    "find-cache-dir": "6.0.0",
+    "unzipper": "0.12.3",
+    "win-version-info": "6.0.1"
   },
   "devDependencies": {
-    "@types/cross-spawn": "^6.0.1",
-    "@types/find-cache-dir": "^2.0.0",
+    "@types/cross-spawn": "^6.0.6",
+    "@changesets/cli": "2.29.7",
     "@types/jasmine": "^3.5.0",
-    "@types/node": "^12.12.20",
-    "@types/node-fetch": "^2.5.4",
-    "@types/unzipper": "^0.10.1",
+    "@types/node": "22.17.1",
+    "@types/unzipper": "^0.10.11",
     "jasmine": "^3.5.0",
-    "prettier": "^1.18.2",
+    "prettier": "3.6.2",
+    "lerna": "9.0.0",
     "standard-version": "^6.0.1",
-    "ts-node": "^8.5.4",
-    "typescript": "^3.7.3"
+    "ts-node": "10.9.2",
+    "typescript": "5.9.3"
   },
   "files": [
     "dist"
